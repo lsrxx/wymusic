@@ -26,7 +26,7 @@ const Swipper: FC<IProps> = () => {
   }
   // 获取轮播图背景的url
   function getBackgound() {
-    return banners[index]?.imageUrl + "?imageView&blur=40x20";
+    return banners?.[index]?.imageUrl + "?imageView&blur=40x20";
   }
   // 左右轮播图按钮的点击
   function rightClick() {
@@ -42,7 +42,7 @@ const Swipper: FC<IProps> = () => {
     <SwipperWrapper
       style={{
         background: `url('${getBackgound()}') center center / 6000px`,
-        transition: `background .2s ease`
+        transition: `background .2s ease`,
       }}
     >
       <div className="leftbtn" onClick={leftClick}>
@@ -67,7 +67,7 @@ const Swipper: FC<IProps> = () => {
             })}
           </Carousel>
           <div className="dots">
-            {banners.map((item, i) => {
+            {banners?.map((item, i) => {
               return (
                 <li
                   key={i}

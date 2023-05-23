@@ -1,4 +1,8 @@
-import { getBanners } from "@/services/modules/discover/discover";
+import {
+  getArtistList,
+  getBanners,
+  getNewDisc,
+} from "@/services/modules/discover/discover";
 import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
@@ -10,7 +14,6 @@ export const fetchBannersData: () => any = createAsyncThunk(
     try {
       const res = await getBanners();
       dispatch(changeBannersAction(res.banners));
-
       // return res.banners;
     } catch (err) {
       console.log(err);
@@ -18,12 +21,34 @@ export const fetchBannersData: () => any = createAsyncThunk(
   }
 );
 
+export const fetchNewDiscData: () => any = createAsyncThunk(
+  "newdisc",
+  async (arg, { getState, dispatch }) => {
+    const res = await getNewDisc();
+    const newRes = res.albums.slice(0, 10);
+    // console.log(newRes);
+    dispatch(changeNewDiscAction(newRes));
+  }
+);
+
+export const fetchArtistsData: () => any = createAsyncThunk(
+  "getArtist",
+  async (arg, { getState, dispatch }) => {
+    const res = await getArtistList(5);
+    // console.log(res.artists);
+    dispatch(changeArtistsAction(res.artists));
+  }
+);
 interface IRecommendState {
   banners: any[];
+  disc: any[];
+  artists: any[];
 }
 
 const initialState: IRecommendState = {
   banners: [],
+  disc: [],
+  artists: [],
 };
 
 const recommendSlice = createSlice({
@@ -32,6 +57,12 @@ const recommendSlice = createSlice({
   reducers: {
     changeBannersAction(state, { payload }) {
       state.banners = payload;
+    },
+    changeNewDiscAction(state, { payload }) {
+      state.disc = payload;
+    },
+    changeArtistsAction(state, { payload }) {
+      state.artists = payload;
     },
   },
   // changeBannersAction 是这种的简写方式
@@ -49,5 +80,6 @@ const recommendSlice = createSlice({
   // },
 });
 
-export const { changeBannersAction } = recommendSlice.actions;
+export const { changeBannersAction, changeNewDiscAction, changeArtistsAction } =
+  recommendSlice.actions;
 export default recommendSlice.reducer;
