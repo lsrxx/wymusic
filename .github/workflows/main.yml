@@ -1,57 +1,56 @@
 name: Build & deploy
 
-on:
+on: 
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
-
+      - dev
 jobs:
-  build:
-    name: Build
+  Build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
+    # 步骤称号
+    - name: checkout code
       uses: actions/checkout@v2
-    
-    - name: Install Node.js
-      uses: actions/setup-node@v1
+    - name: actions/setup-node@v2
+      uses: actions/setup-node@v2   
       with:
-        node-version: 13.x
-    
-    - name: Install NPM packages
-      run: npm i
-    
-    - name: Build project
-      run: npm run build
-    
-    - name: Run tests
-      run: npm run test
-
-    - name: Upload production-ready build files
+        node-version: '16.14'
+        cache: 'yarn'
+        cache-dependency-path: '**/yarn.lock'
+    # 缓存 有需求能够敞开 一起 setu node 也能够进行缓存
+    # - name: yarn cache
+    #   id: yarn-cahce-dir-path
+    #   run: echo "::set-output name=dir::$(yarn cache dir)"
+    # - uses: actions/cache@v2
+    #   id: yarn-cache
+    #   with: 
+    #     path: ${{ steps.yarn-cahce-dir-path.outputs.dir }}
+    #     key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+    #     restore-keys: | 
+    #       ${{ runner.os }}-yarn-    
+    - run: yarn install && yarn build  
+    # 上传打包好的文件，所以下一步能够运用
+    - name: upload files 
       uses: actions/upload-artifact@v2
-      with:
-        name: production-files
-        path: ./build
-  
-  deploy:
-    name: Deploy
-    needs: build
+      with: 
+        name: build-pages
+        path: build
+        retention-days: 1
+  Deploy: 
+    needs: Build # 确保build 阶段完结
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
     steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: production-files
-        path: ./build
-
-    - name: Deploy to gh-pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: download build files
+        uses: actions/download-artifact@v2
+        with:
+          name: build-pages
+          path: build
+      - name: deploy
+        uses: JamesIves/github-pages-deploy-action@v4.2.3
+        with:
+          branch: gh-pages
+          folder: build 
+          token: "${{ secrets.DEPLOY_TOKEN }}"  
